@@ -3,9 +3,11 @@ package student
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"go-grpc/proto/student"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 )
 
@@ -25,7 +27,14 @@ func (d *DataStudentServer) FindStudentByEmail(ctx context.Context, student *stu
 }
 
 func (d *DataStudentServer) loadData() {
-	file, err := os.ReadFile("data/students.json")
+	// Get the current working directory
+	wd, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	// Build the path to the data.json file using filepath.Join()
+	dataPath := filepath.Join(wd, "server/data", "students.json")
+	file, err := os.ReadFile(dataPath)
 	if err != nil {
 		log.Fatalln("Error read file", err)
 	}
@@ -33,6 +42,7 @@ func (d *DataStudentServer) loadData() {
 	if err := json.Unmarshal(file, &d.students); err != nil {
 		log.Fatalln("Error unmarshal data json", err)
 	}
+	fmt.Printf("INFO: %v\n", d.students)
 }
 
 func NewStudentServer() *DataStudentServer {

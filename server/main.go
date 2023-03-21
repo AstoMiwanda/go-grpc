@@ -4,6 +4,7 @@ import (
 	"go-grpc/proto/echo"
 	"go-grpc/proto/student"
 	pbEcho "go-grpc/server/echo"
+	"go-grpc/server/middleware"
 	pbStudent "go-grpc/server/student"
 	"google.golang.org/grpc"
 	"log"
@@ -16,7 +17,7 @@ func main() {
 		log.Fatalln("error listen", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(middleware.Auth))
 	student.RegisterDataStudentServer(grpcServer, pbStudent.NewStudentServer())
 	echo.RegisterEchoServer(grpcServer, pbEcho.NewEchoServer())
 
