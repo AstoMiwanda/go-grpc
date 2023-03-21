@@ -1,26 +1,13 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	pb "go-grpc/student"
+	"go-grpc/client/echo"
+	"go-grpc/client/student"
+	pbEcho "go-grpc/proto/echo"
+	pbStudent "go-grpc/proto/student"
 	"google.golang.org/grpc"
 	"log"
-	"time"
 )
-
-func getDataStudentByEmail(client pb.DataStudentClient, email string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	s := pb.Student{Email: email}
-	student, err := client.FindStudentByEmail(ctx, &s)
-	if err != nil {
-		log.Fatalln("err get student", err)
-	}
-
-	fmt.Println(student)
-}
 
 func main() {
 	var opts []grpc.DialOption
@@ -32,9 +19,17 @@ func main() {
 	if err != nil {
 		log.Fatalln("err dial", err)
 	}
-	defer dial.Close()
+	defer func() {
+		if err := dial.Close(); err != nil {
+			panic(err)
+		}
+	}()
 
-	client := pb.NewDataStudentClient(dial)
-	getDataStudentByEmail(client, "azza@mail.com")
-	getDataStudentByEmail(client, "asto@mail.com")
+	clientStudent := pbStudent.NewDataStudentClient(dial)
+	student.GetDataStudentByEmail(clientStudent, "azza@mail.com")
+	student.GetDataStudentByEmail(clientStudent, "asto@mail.com")
+
+	clientEcho := pbEcho.NewEchoClient(dial)
+	echo.CallerUnaryEcho(clientEcho, "message-1")
+	echo.CallerUnaryEcho(clientEcho, "message-2")
 }
